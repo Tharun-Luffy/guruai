@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/inngest/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { generateAIInsights } from "./dashboard";
 
 export async function updateUser(data) {
   const { userId } = await auth();
@@ -24,9 +25,13 @@ export async function updateUser(data) {
           },
         });
         if (!industryInsight) {
-          industryInsight = await tx.industryInsight.create({
+          const insights = await generateAIInsights(user.industry);
+
+          industryInsight = await db.industryInsight.create({
             data: {
-              industry: data.industry,
+              industry: user.industry,
+              ...insights,
+              nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
           });
         }
@@ -52,10 +57,10 @@ export async function updateUser(data) {
       }
     );
 
-    return result.user;
+    return { success: true, ...result };
   } catch (error) {
     console.log(error.message);
-    throw new Error("Failed to update profile");
+    throw new Error("Failed to update profile" + error.message);
   }
 }
 
