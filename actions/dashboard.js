@@ -43,13 +43,15 @@ export async function getIndustryInsights() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: {
-      clerkUserId: userId,
+    where: { clerkUserId: userId },
+    include: {
+      industryInsight: true,
     },
   });
 
-  if (!user) throw new Error("User Not Found");
+  if (!user) throw new Error("User not found");
 
+  // If no insights exist, generate them
   if (!user.industryInsight) {
     const insights = await generateAIInsights(user.industry);
 
@@ -57,10 +59,12 @@ export async function getIndustryInsights() {
       data: {
         industry: user.industry,
         ...insights,
-        nextUpdate: new Date(Date.now() + 7 * 24 * 24 * 60 * 1000),
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });
 
-    return user.industryInsight;
+    return industryInsight;
   }
+
+  return user.industryInsight;
 }
