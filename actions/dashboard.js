@@ -44,14 +44,15 @@ export async function getIndustryInsights() {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-    include: {
-      industryInsight: true,
-    },
+    include: { industryInsight: true },
   });
 
   if (!user) throw new Error("User not found");
 
-  // If no insights exist, generate them
+  if (!user.industry) {
+    throw new Error("User has not completed onboarding (industry missing)");
+  }
+
   if (!user.industryInsight) {
     const insights = await generateAIInsights(user.industry);
 

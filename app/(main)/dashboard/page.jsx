@@ -5,7 +5,7 @@ import React from "react";
 import DashboardView from "./_components/dashboard-view";
 
 const IndustryInsights = async () => {
-  const isOnboarded = await getUserOnboardingStatus();
+  const { isOnboarded } = await getUserOnboardingStatus();
 
   if (!isOnboarded) {
     redirect("/onboarding");
